@@ -1,0 +1,477 @@
+﻿<div class="card-body">
+    <form method="post" enctype="multipart/form-data" asp-action="Text_Processor">
+        <div class="d-flex gap-3 flex-wrap mb-3">
+            <div id="results" class="alert alert-info position-absolute start-0  top-15 p-3 w-25"
+                style="display: none; height: 15vh;">
+                <ul class="list-unstyled mb-0">
+                    <li><strong>الأسطر الفارغة:</strong> <span id="empty-lines"></span></li>
+                    <li><strong>الأسطر غير الفارغة:</strong> <span id="non-empty-lines"></span></li>
+                    <li><strong>إجمالي الأسطر:</strong> <span id="total-lines"></span></li>
+                </ul>
+            </div>
+
+            <div class="d-flex flex-column justify-content-center ms-auto w-75">
+                <label for="input_file" class="form-label">اختر الملف:</label>
+                <input type="file" class="form-control" id="input_file" name="input_file" required>
+            </div>
+        </div>
+
+        <div id="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="actions" class="form-label">الإجراءات (قابلة للترتيب):</label>
+                <ul class="list-group sortable-list" id="sortable" style="max-height: 600px; overflow-y: auto;">
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_null" name="additional_action"
+                                value="remove_null">
+                            <label class="form-check-label ms-2" for="remove_null">إزالة الأسطر الفارغة</label>
+                        </div>
+                    </li>
+
+
+
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_from_start" name="action_type"
+                                value="remove_from_start" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="remove_from_start"> زالة النص من بداية السطر إلى
+                                كلمة أو أكثر </label>
+                            <div id="word_fields_rm_start"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+
+                                <div id="inputs-wrapper" class="d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="text" id="word6" class="form-control flex-grow-1"
+                                            placeholder=" الكلمة " />
+                                        <button type="button" class="btn btn-primary add-input-btn">+</button>
+                                        <button type="button" class="btn btn-danger remove-input-btn">-</button>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </li>
+
+
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_number_from_start"
+                                name="action_type" value="remove_number_from_start" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="remove_number_from_start">إزالة الأرقام بداية أي
+                                سطر</label>
+
+                            <div id="word_fields_rem_numbers_start"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="number_with_space"
+                                        name="number_condition" value="with_space" checked>
+                                    <label class="form-check-label" for="number_with_space">الرقم يليه مسافة</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="any_number" name="number_condition"
+                                        value="any_number">
+                                    <label class="form-check-label" for="any_number">أي رقم</label>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                    </li>
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_contain" name="action_type"
+                                value="remove_contain" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="remove_contain"> حذف السطور التي تحتوي على الكلمات
+                            </label>
+                            <div id="word_fields_rm_contain"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+
+                                <div id="inputs-wrapper-removes" class="d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="text" id="word6" class="form-control flex-grow-1"
+                                            placeholder="الكلمة" />
+                                        <button type="button" class="btn btn-primary add-input-btn">+</button>
+                                        <button type="button" class="btn btn-danger remove-input-btn">-</button>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </li>
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_between" name="action_type"
+                                value="remove_between" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="remove_between">إزالة النص الموجود مابين
+                                كلمتين</label>
+                            <div id="word_fields_bettween"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+                                <input type="text" class="form-control" id="word1" name="word1"
+                                    placeholder="الكلمة الأولى">
+                                <input type="text" class="form-control" id="word2" name="word2"
+                                    placeholder="الكلمة الثانية">
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="replace" name="action_type"
+                                value="replace" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="replace">استبدال الكلمات في الملف</label>
+                            <div id="word_fields_remove_from_start"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+                                <input type="text" class="form-control" id="word3" name="word3"
+                                    placeholder="الكلمة المراد استبدالها">
+                                <input type="text" class="form-control" id="word4" name="word4"
+                                    placeholder="الكلمة البديلة">
+                            </div>
+                        </div>
+                    </li>
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="searching" name="action_type"
+                                value="searching" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="searching"> تصنيف المحتوى بناء على الكلمة </label>
+                            <div id="word_fields_search"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+                                <input type="text" class="form-control" id="word5" name="word5"
+                                    placeholder="الكلمة المراد البحث عليها">
+                                <input type="number" class="form-control" id="count" name="count"
+                                    placeholder=" عدد المرات" min=0>
+                            </div>
+                        </div>
+                    </li>
+
+
+
+
+
+
+
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_lines_starting_with"
+                                name="action_type" value="remove_lines_starting_with" onchange="toggleWordFields()">
+                            <label class="form-check-label ms-2" for="remove_lines_starting_with"> إزالة الأسطر التي
+                                تبدأ بكلمة محددة </label>
+
+                            <div id="word_fields_rm_start_with"
+                                style="display: none; margin-left: 10px; display: flex; gap: 10px; width: 100%;">
+                                <input type="text" class="form-control" id="word7" name="word7"
+                                    placeholder=" الكلمة المطلوبة ">
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="form-check d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="remove_space" name="additional_action"
+                                value="remove_space">
+                            <label class="form-check-label ms-2" for="remove_space">إزالة المسافات في كل سطر</label>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center ">
+            <button type="submit" class="btn btn-primary" style="margin-left: 10px;">تنفيذ</button>
+            <a href="" class="btn btn-primary">تحديث</a>
+
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/static/Sortable.min.js"></script>
+    <script>
+
+        function inaital_multiple_text(id) {
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const inputsWrapper = document.getElementById(id);
+
+                inputsWrapper.addEventListener("click", (event) => {
+                    if (event.target.closest(".add-input-btn")) {
+                        const addButton = event.target.closest(".add-input-btn");
+                        const parentContainer = addButton.closest(".d-flex");
+
+                        const inputField = document.createElement("input");
+                        inputField.type = "text";
+                        inputField.classList.add("form-control", "flex-grow-1");
+                        inputField.placeholder = "الكلمة";
+
+                        parentContainer.insertBefore(inputField, addButton);
+                    }
+
+                    if (event.target.closest(".remove-input-btn")) {
+                        const removeButton = event.target.closest(".remove-input-btn");
+                        const parentContainer = removeButton.closest(".d-flex");
+
+                        const inputFields = parentContainer.querySelectorAll("input[type='text']");
+                        if (inputFields.length > 1) {
+                            parentContainer.removeChild(inputFields[inputFields.length - 1]);
+                        } else {
+                            alert("At least one input field must remain!");
+                        }
+                    }
+                });
+
+
+            });
+
+
+        }
+
+
+        inaital_multiple_text("inputs-wrapper");
+        inaital_multiple_text("inputs-wrapper-removes");
+
+
+
+        // تفعيل Sortable.js على القائمة الموحدة
+        new Sortable(document.getElementById('sortable'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+        });
+
+        validate_file();
+
+
+        function get_or_valuse(id) {
+            const inputsWrapper = document.getElementById(id);
+
+            const inputFields = inputsWrapper.querySelectorAll("input[type='text']");
+            return Array.from(inputFields).map((input) => input.value);
+        }
+
+
+        function toggleWordFields() {
+            const removeBetween = document.getElementById('remove_between').checked;
+            const replace = document.getElementById('replace').checked;
+            const searching = document.getElementById('searching').checked;
+            const remove_from_start = document.getElementById('remove_from_start').checked;
+            const remove_lines_starting_with = document.getElementById('remove_lines_starting_with').checked;
+
+            const remove_number_from_start = document.getElementById('remove_number_from_start').checked;
+            const remove_contain = document.getElementById('remove_contain').checked;
+
+
+            const word_fields_remove_from_start = document.getElementById('word_fields_remove_from_start');
+            const word_fields_bettween = document.getElementById('word_fields_bettween');
+            const word_fields_search = document.getElementById('word_fields_search');
+            const word_fields_rm_start = document.getElementById('word_fields_rm_start');
+            const word_fields_rm_start_with = document.getElementById('word_fields_rm_start_with');
+            const word_fields_rm_contain = document.getElementById('word_fields_rm_contain');
+
+            const word_fields_rem_numbers_start = document.getElementById('word_fields_rem_numbers_start');
+
+
+            word_fields_remove_from_start.style.display = 'none';
+            word_fields_bettween.style.display = 'none';
+            word_fields_search.style.display = 'none';
+            word_fields_rm_start.style.display = 'none';
+            word_fields_rm_start_with.style.display = 'none';
+            word_fields_rm_contain.style.display = 'none';
+
+            word_fields_rem_numbers_start.style.display = 'none';
+
+
+
+            if (removeBetween) {
+                word_fields_bettween.style.display = 'flex';
+            }
+            if (replace) {
+                word_fields_remove_from_start.style.display = 'flex';
+            }
+
+            if (searching) {
+                word_fields_search.style.display = 'flex';
+            }
+
+            if (remove_from_start) {
+                word_fields_rm_start.style.display = 'flex';
+            }
+
+            if (remove_lines_starting_with) {
+                word_fields_rm_start_with.style.display = 'flex';
+            }
+
+            if (remove_contain) {
+                word_fields_rm_contain.style.display = 'flex';
+            }
+
+            if (remove_number_from_start) {
+                word_fields_rem_numbers_start.style.display = 'flex';
+            }
+
+
+        }
+
+
+        document.querySelectorAll('.form-check-input, .form-check-label').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+
+
+        toggleWordFields();
+
+        document.querySelector("form").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const spinner = document.getElementById("loading-spinner");
+            spinner.style.display = "block";
+            // Get sorted actions
+            const sortedActions = Array.from(document.querySelectorAll("#sortable li")).map((li) => {
+                const checkbox = li.querySelector("input[type='checkbox']");
+                if (checkbox.checked) {
+                    const action = {
+                        type: checkbox.value,
+                        params: {},
+                    };
+
+                    // Collect action-specific parameters
+                    if (checkbox.value === "remove_between") {
+                        action.params.word1 = document.getElementById("word1").value;
+                        action.params.word2 = document.getElementById("word2").value;
+                    } else if (checkbox.value === "replace") {
+                        action.params.word1 = document.getElementById("word3").value;
+                        action.params.word2 = document.getElementById("word4").value;
+                    } else if (checkbox.value === "searching") {
+                        action.params.word = document.getElementById("word5").value;
+                        action.params.count = document.getElementById("count").value;
+                    } else if (checkbox.value === "remove_from_start") {
+                        action.params.word = get_or_valuse("inputs-wrapper");
+
+                    } else if (checkbox.value === "remove_contain") {
+                        action.params.word = get_or_valuse("inputs-wrapper-removes");
+
+                    } else if (checkbox.value === "remove_lines_starting_with") {
+                        action.params.word = document.getElementById("word7").value;
+                    } else if (checkbox.value === "remove_number_from_start") {
+                        let send_condition;
+                        if (document.getElementById("any_number").checked) {
+                            send_condition = document.getElementById("any_number").value;
+                        } else if (document.getElementById("number_with_space").checked) {
+                            send_condition = document.getElementById("number_with_space").value;
+                        }
+                        action.params.condition = send_condition;
+                    }
+
+                    return action;
+                }
+            }).filter(Boolean);
+
+
+            const formData = new FormData(this);
+            formData.append("sorted_actions", JSON.stringify(sortedActions));
+
+            fetch(this.action, {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => {
+                    const contentType = response.headers.get("Content-Type");
+                    spinner.style.display = "none"; // إخفاء مؤشر التحميل عند استلام الاستجابة
+                    if (contentType === "application/zip") {
+
+                        return response.blob().then((blob) => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = "processed_files.zip"; // Download ZIP file
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                        });
+
+                    } else if (contentType === "text/plain") {
+
+                        return response.blob().then((blob) => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = "processed_file.txt"; // Download TXT file
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                        });
+
+
+                    } else {
+
+                        console.error("Unexpected content type:", contentType);
+                        alert("Unexpected content type received. Please check the server response.");
+                    }
+
+                })
+                .catch((error) => {
+                    console.error("Error during file processing:", error);
+                    alert("An error occurred while processing the file. Please try again.");
+                });
+        });
+
+
+
+
+
+
+        const fileInput = document.getElementById("input_file");
+        const resultsDiv = document.getElementById("results");
+        const totalLinesSpan = document.getElementById("total-lines");
+        const emptyLinesSpan = document.getElementById("empty-lines");
+        const nonEmptyLinesSpan = document.getElementById("non-empty-lines");
+
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const content = e.target.result;
+
+                    const lines = content.split(/\r?\n/);
+                    const totalLines = lines.length;
+                    const emptyLines = lines.filter(line => line.trim() === "").length;
+                    const nonEmptyLines = totalLines - emptyLines;
+
+                    totalLinesSpan.textContent = totalLines;
+                    emptyLinesSpan.textContent = emptyLines;
+                    nonEmptyLinesSpan.textContent = nonEmptyLines;
+
+                    resultsDiv.style.display = "block";
+                };
+
+                reader.readAsText(file);
+            } else {
+                resultsDiv.style.display = "none";
+            }
+        });
+    </script>
+}
